@@ -5,9 +5,17 @@ import java.util.Arrays;
 public class MergeSort {
     public static void main(String[] args) {
         int[] test1 = new int[] {4, 3, 2, 1};
-
+        int[] test2 = new int[] {1, 2, 3, 4};
+        int[] test3 = new int[] {4, 4, 2, 1};
+        int[] test4 = new int[] {4, 4, 4, 4};
         sort(test1);
+        sort(test2);
+        sort(test3);
+        sort(test4)
         System.out.println(Arrays.toString(test1));
+        System.out.println(Arrays.toString(test2));
+        System.out.println(Arrays.toString(test3));
+        System.out.println(Arrays.toString(test4));
     }
 
     private static void sort(int[] array) {
