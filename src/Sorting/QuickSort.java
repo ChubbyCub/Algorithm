@@ -2,7 +2,7 @@ package Sorting;
 
 import java.util.Arrays;
 
-public class MergeSort {
+public class QuickSort {
     public static void main(String[] args) {
         int[] test1 = new int[] {4, 3, 2, 1};
         int[] test2 = new int[] {1, 2, 3, 4};
@@ -29,34 +29,32 @@ public class MergeSort {
     }
 
     private static void helper(int[] array, int start, int end) {
-        if (start >= end) return;
-        int mid = start + (end - start) / 2;
-        helper(array, start, mid);
-        helper(array, mid + 1, end);
-        merge(array, start, end, mid);
+        if (start > end) {
+            return;
+        }
+        int pivotIndex = (int) ((Math.random() * (end - start)) + start);
+        int partitionIdx = partition(array, start, end, pivotIndex);
+        helper(array, start, partitionIdx - 1);
+        helper(array, partitionIdx + 1, end);
     }
 
-    private static void merge(int[] array, int start, int end, int mid) {
-        int[] temp = new int[end - start + 1];
-        int i = start;
-        int j = mid + 1;
-        int curr = 0;
-        while (i <= mid && j <= end) {
-            if (array[i] <= array[j]) {
-                temp[curr++] = array[i++];
-            } else {
-                temp[curr++] = array[j++];
+    private static int partition(int[] array, int start, int end, int pivotIndex) {
+        int pivot = array[pivotIndex];
+        int curr = start;
+        swap(array, pivotIndex, end);
+        for (int i = start; i < end; i++) {
+            if (array[i] < pivot) {
+                swap(array, curr, i);
+                curr++;
             }
         }
+        swap(array, curr, end);
+        return curr;
+    }
 
-        while (i <= mid) {
-            temp[curr++] = array[i++];
-        }
-
-        while (j <= end) {
-            temp[curr++] = array[j++];
-        }
-
-        System.arraycopy(temp, 0, array, 0 + start, temp.length);
+    private static void swap(int[] array, int i, int j) {
+        int temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
     }
 }
