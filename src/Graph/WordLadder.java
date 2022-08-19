@@ -1,5 +1,6 @@
 package Graph;
 
+import java.sql.Array;
 import java.util.*;
 
 public class WordLadder {
@@ -7,55 +8,89 @@ public class WordLadder {
 
     }
 
-    private static int ladderLength(String beginWord, String endWord, List<String> wordList) {
-        wordList.add(beginWord);
-        Map<String, List<String>> graph = buildGraph(wordList);
-        if (!graph.containsKey(endWord)) return 0;
-        Queue<String> queue = new LinkedList<>();
-        Map<String, String> backRef = new HashMap<>();
-        queue.add(beginWord);
-        backRef.put(beginWord, null);
-
-        while(!queue.isEmpty()) {
-            String curr = queue.poll();
-            boolean found = false;
-            for (String neighbor : graph.getOrDefault(curr, new ArrayList<>())) {
-                if (backRef.containsKey(neighbor)) continue;
-                backRef.put(neighbor, curr);
-                if (neighbor.equals(endWord)) {
-                    found = true;
-                    break;
-                }
-                queue.add(neighbor);
-            }
-            if (found) break;
+    private static ArrayList<String> string_transformation(ArrayList<String> wordList, String beginWord, String endWord) {
+        Set<String> dict = new HashSet<>(wordList);
+        dict.remove(beginWord);
+        dict.remove(endWord);
+        if (beginWord.equals(endWord)) {
+            return new ArrayList<>(List.of("-1"));
         }
-
-        if (!backRef.containsKey(endWord)) return 0;
-        String curr = endWord;
-        int count = 0;
-
-        while (curr != null) {
-            count++;
-            curr = backRef.get(curr);
+        if (isOneCharacterAway(beginWord, endWord) && wordList.size() == 0) {
+            return new ArrayList<>(List.of(beginWord, endWord));
         }
-
-        return count;
+        return bfs(dict, beginWord, endWord);
     }
 
-    private static Map<String, List<String>> buildGraph(List<String> wordList) {
-        Map<String, List<String>> graph = new HashMap<>();
+    private static ArrayList<String> createAns(Map<String, String> backRef, String curr, String endWord) {
+        ArrayList<String> ans = new ArrayList<>();
+        ans.add(endWord);
+        while(curr != null) {
+            ans.add(curr);
+            curr = backRef.get(curr);
+        }
+        Collections.reverse(ans);
+        return ans;
+    }
 
-        for (String word_one : wordList) {
-            graph.putIfAbsent(word_one, new ArrayList<>());
-            for (String word_two: wordList) {
-                if (isOneCharacterAway(word_one, word_two)) {
-                    graph.get(word_one).add(word_two);
+    private static ArrayList<String> bfs(Set<String> dict, String beginWord, String endWord) {
+        Queue<String> queue = new LinkedList<>();
+        Set<String> visited = new HashSet<>();
+        Map<String, String> backRef = new HashMap<>();
+
+        queue.add(beginWord);
+        visited.add(beginWord);
+
+        while(!queue.isEmpty()) {
+            String currWord = queue.poll();
+            Set<String> neighbors = new HashSet<>();
+            if (dict.size() > 26 * currWord.length()) {
+                neighbors = getNeighbors2(dict, currWord, endWord);
+            } else {
+                neighbors = getNeighbors1(dict, currWord, endWord);
+            }
+
+            for (String neighbor : neighbors) {
+                if (neighbor.equals(endWord)) {
+                    return createAns(backRef, currWord, endWord);
+                }
+                if (visited.contains(neighbor)) continue;
+                visited.add(neighbor);
+                queue.offer(neighbor);
+                backRef.put(neighbor, currWord);
+            }
+        }
+        return new ArrayList<>(List.of("-1"));
+    }
+
+    private static Set<String> getNeighbors1(Set<String> wordList, String currWord, String endWord) {
+        Set<String> neighbors = new HashSet<>();
+        for (String word : wordList) {
+            if (isOneCharacterAway(currWord, endWord)) {
+                neighbors.add(endWord);
+            }
+            if (isOneCharacterAway(currWord, word)) {
+                neighbors.add(word);
+            }
+        }
+        return neighbors;
+    }
+
+    private static Set<String> getNeighbors2(Set<String> wordList, String currWord, String endWord) {
+        Set<String> neighbors = new HashSet<>();
+        for (int i = 0; i < currWord.length(); i++) {
+            char[] candidate = currWord.toCharArray();
+            char original = candidate[i];
+            for (char c = 'a'; c <= 'z'; c++) {
+                if (c != original) {
+                    candidate[i] = c;
+                    String candidateStr = String.valueOf(candidate);
+                    if (wordList.contains(candidateStr) | candidateStr.equals(endWord)) {
+                        neighbors.add(candidateStr);
+                    }
                 }
             }
         }
-
-        return graph;
+        return neighbors;
     }
 
     private static boolean isOneCharacterAway(String s1, String s2) {
@@ -63,6 +98,7 @@ public class WordLadder {
         int countDiffs = 0;
         for (int i = 0; i < s1.length(); i++) {
             if (s1.charAt(i) != s2.charAt(i)) countDiffs++;
+            if (countDiffs > 1) return false;
         }
 
         return countDiffs == 1;
